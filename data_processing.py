@@ -20,7 +20,8 @@ class MNIST:
             for r in range(n_rows):
                 row = []
                 for c in range(n_columns):
-                    pixel = f.read(1)
+                    #pixel = f.read(1)                                                                #szybsze dla obrazów png
+                    pixel = int.from_bytes(f.read(1), 'big')                               # szybsze do testowania dokładności
                     row.append(pixel)
                 image.append(row)
             images.append(image)
@@ -76,7 +77,13 @@ class Files:
         return images
 
     @staticmethod
-    def write_to_txt(output, output_path, input_path):
+    def read_list(path):
+        with open(path, 'r') as filehandle:
+            list = [element.rstrip() for element in filehandle.readlines()]
+        return list
+
+    @staticmethod
+    def input_to_txt(output, output_path, input_path):
         output_files = []
         for r, d, f in os.walk(input_path):
             for file in f:
@@ -88,3 +95,13 @@ class Files:
             f.write(str(output[i]))
             f.close()
 
+    @staticmethod
+    def write_to_txt(output, output_path):
+        f = open(output_path, 'w')
+        f.write(str(output))
+        f.close()
+
+    @staticmethod
+    def list_to_txt(list, output_path):
+        with open(output_path, 'w') as filehandle:
+            filehandle.writelines("%s\n" % element for element in list)
