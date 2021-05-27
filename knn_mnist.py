@@ -111,12 +111,13 @@ def main():
 
     X_train = data_processing.MNIST.load_images(TRAIN_DATA, number_of_train_images)
     y_train = data_processing.MNIST.load_labels(TRAIN_LABELS, number_of_train_images)
+    X_train = data_processing.Image.dataset_to_list(X_train)
+
+    '''
     X_test = data_processing.MNIST.load_images(TEST_DATA, number_of_test_images)
     y_test = data_processing.MNIST.load_labels(TEST_LABELS, number_of_test_images)
-
-    X_train = data_processing.Image.dataset_to_list(X_train)
     X_test = data_processing.Image.dataset_to_list(X_test)
-    '''
+    
     test_k(X_train, y_train, X_test, y_test, 'knn_output/accuracy_euclidean/')
     test_k(X_train, y_train, X_test, y_test, 'knn_output/accuracy_minkowski/')
     ''''''
