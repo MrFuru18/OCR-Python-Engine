@@ -1,22 +1,25 @@
 import data_processing
 import datetime
 
-DATA_DIR = 'data/'
-INPUT_DIR = 'input/'
-OUTPUT_DIR = 'knn_output/'
-DATASET = 'mnist'
-TEST_DATA_FILENAME = DATA_DIR + DATASET + '/t10k-images.idx3-ubyte'
-TEST_LABELS_FILENAME = DATA_DIR + DATASET + '/t10k-labels.idx1-ubyte'
-TRAIN_DATA_FILENAME = DATA_DIR + DATASET + '/train-images.idx3-ubyte'
-TRAIN_LABELS_FILENAME = DATA_DIR + DATASET + '/train-labels.idx1-ubyte'
+TEST_DATA = 'data/mnist/t10k-images.idx3-ubyte'
+TEST_LABELS = 'data/mnist/t10k-labels.idx1-ubyte'
+TRAIN_DATA = 'data/mnist/train-images.idx3-ubyte'
+TRAIN_LABELS = 'data/mnist/train-labels.idx1-ubyte'
 
+'''
+TEST_DATA = 'data/emnist-letters/emnist-letters-test-images-idx3-ubyte'
+TEST_LABELS = 'data/emnist-letters/emnist-letters-test-labels-idx1-ubyte'
+TRAIN_DATA = 'data/emnist-letters/emnist-letters-train-images-idx3-ubyte'
+TRAIN_LABELS = 'data/emnist-letters/emnist-letters-train-labels-idx1-ubyte'
+'''
 
 class KNNmnist:
     @staticmethod
     def euclidean_distance(v1, v2):
         distance = 0
         for i in range(len(v1)):
-            distance += (int.from_bytes(v1[i], 'big') - int.from_bytes(v2[i], 'big'))**2
+            #distance += (int.from_bytes(v1[i], 'big') - int.from_bytes(v2[i], 'big'))**2            #szybsze dla obrazów png
+            distance += (v1[i] - v2[i]) ** 2                                            # szybsze do testowania dokładności
         distance = distance**(1/2)
         return distance
 
@@ -25,7 +28,8 @@ class KNNmnist:
         dim = len(v1)-1
         distance = 0
         for i in range(dim):
-            distance += abs(int.from_bytes(v1[i], 'big') - int.from_bytes(v2[i], 'big'))**m
+            #distance += abs(int.from_bytes(v1[i], 'big') - int.from_bytes(v2[i], 'big'))**m         #szybsze dla obrazów png
+            distance += abs(v1[i] - v2[i]) ** m                                        # szybsze do testowania dokładności
         distance = distance**(1/m)
         return distance
 
@@ -77,33 +81,37 @@ def analyze_input_set(X_train, y_train, X_test, k):
         y_output.append(KNNmnist.clustering(X_train, y_train, sample, k))
     return y_output
 
+def test_k(X_train, y_train, X_test, y_test, output_dir):
+    for k in range(2,9):
+        output_file = output_dir + 'Accuracy k=' + str(k) + '.txt'
+        data_processing.Files.write_to_txt(test_accuracy(X_train, y_train, X_test, y_test, k), output_file)
+
 
 
 def main():
-    number_of_train_images = 2500
+    number_of_train_images = 200
     number_of_test_images = 4
     k = 9
 
-    X_train = data_processing.MNIST.load_images(TRAIN_DATA_FILENAME, number_of_train_images)
-    y_train = data_processing.MNIST.load_labels(TRAIN_LABELS_FILENAME, number_of_train_images)
-    X_test = data_processing.MNIST.load_images(TEST_DATA_FILENAME, number_of_test_images)
-    y_test = data_processing.MNIST.load_labels(TEST_LABELS_FILENAME, number_of_test_images)
+    X_train = data_processing.MNIST.load_images(TRAIN_DATA, number_of_train_images)
+    y_train = data_processing.MNIST.load_labels(TRAIN_LABELS, number_of_train_images)
+    X_test = data_processing.MNIST.load_images(TEST_DATA, number_of_test_images)
+    y_test = data_processing.MNIST.load_labels(TEST_LABELS, number_of_test_images)
 
     X_train = data_processing.Image.dataset_to_list(X_train)
     X_test = data_processing.Image.dataset_to_list(X_test)
 
-    images = data_processing.Files.read_images(INPUT_DIR)
+    test_k(X_train, y_train, X_test, y_test, 'knn_output/accuracy_euclidean/')
+    #test_k(X_train, y_train, X_test, y_test, 'knn_output/accuracy_minkowski/')
+
+    images = data_processing.Files.read_images('input/')
     images = data_processing.Image.dataset_to_list(images)
 
-    data_processing.Files.write_to_txt(analyze_input_set(X_train, y_train, images, k), OUTPUT_DIR, INPUT_DIR)
-
-    #print(KNNmnist.clustering(X_train, y_train, X_test[0], k))
-    #print(test_accuracy(X_train, y_train, X_test, y_test, k))
+    data_processing.Files.input_to_txt(analyze_input_set(X_train, y_train, images, k), 'knn_output/', 'input/')
 
 
-if __name__ == '__main__':
-    begin_time = datetime.datetime.now()
 
-    main()
 
-    print(datetime.datetime.now() - begin_time)
+begin_time = datetime.datetime.now()
+main()
+print(datetime.datetime.now() - begin_time)
