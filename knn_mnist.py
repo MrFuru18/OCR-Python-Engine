@@ -18,8 +18,8 @@ class KNNmnist:
     def euclidean_distance(v1, v2):
         distance = 0
         for i in range(len(v1)):
-            #distance += (int.from_bytes(v1[i], 'big') - int.from_bytes(v2[i], 'big'))**2            #szybsze dla obrazów png
-            distance += (v1[i] - v2[i]) ** 2                                            # szybsze do testowania dokładności
+            distance += (int.from_bytes(v1[i], 'big') - int.from_bytes(v2[i], 'big'))**2            #szybsze dla obrazów png
+            #distance += (v1[i] - v2[i]) ** 2                                            # szybsze do testowania dokładności
         distance = distance**(1/2)
         return distance
 
@@ -28,8 +28,8 @@ class KNNmnist:
         dim = len(v1)-1
         distance = 0
         for i in range(dim):
-            #distance += abs(int.from_bytes(v1[i], 'big') - int.from_bytes(v2[i], 'big'))**m         #szybsze dla obrazów png
-            distance += abs(v1[i] - v2[i]) ** m                                        # szybsze do testowania dokładności
+            distance += abs(int.from_bytes(v1[i], 'big') - int.from_bytes(v2[i], 'big'))**m         #szybsze dla obrazów png
+            #distance += abs(v1[i] - v2[i]) ** m                                        # szybsze do testowania dokładności
         distance = distance**(1/m)
         return distance
 
@@ -48,8 +48,8 @@ class KNNmnist:
     def clustering(X_train, y_train, sample, k):
         distances = []
         for i in range(len(X_train)):
-            distances.append(KNNmnist.euclidean_distance(sample, X_train[i]))
-            #distances.append(KNNmnist.minkowski_metric(sample, X_train[i], k))
+            #distances.append(KNNmnist.euclidean_distance(sample, X_train[i]))
+            distances.append(KNNmnist.minkowski_metric(sample, X_train[i], k))
 
         sorted_distances = sorted(enumerate(distances), key=lambda x: x[1])
 
@@ -75,23 +75,39 @@ def test_accuracy(X_train, y_train, X_test, y_test, k):
     accuracy = correct / len(X_test) * 100
     return accuracy
 
+def test_k(X_train, y_train, X_test, y_test, output_dir):
+    for k in range(1,9):
+        output_file = output_dir + 'Accuracy k=' + str(k) + '.txt'
+        data_processing.Files.write_to_txt(test_accuracy(X_train, y_train, X_test, y_test, k), output_file)
+
+def get_list_of_indexes(y):
+    list_of_digits_indexes = []
+    for digit in range(10):
+        digit_indexes = []
+        for index in range(len(y)):
+            if digit == y[index]:
+                digit_indexes.append(index)
+        list_of_digits_indexes.append(digit_indexes)
+    return list_of_digits_indexes
+
+def test_accuracy_for_digit(X_train, y_train, X_test, y_test_list_of_indexes, digit, k):
+    correct = 0
+    for index in y_test_list_of_indexes[digit]:
+        if KNNmnist.clustering(X_train, y_train, X_test[index], k) == digit:
+            correct += 1
+    accuracy = correct / len(y_test_list_of_indexes[digit]) * 100
+    return accuracy
+
 def analyze_input_set(X_train, y_train, X_test, k):
     y_output = []
     for sample in X_test:
         y_output.append(KNNmnist.clustering(X_train, y_train, sample, k))
     return y_output
 
-def test_k(X_train, y_train, X_test, y_test, output_dir):
-    for k in range(2,9):
-        output_file = output_dir + 'Accuracy k=' + str(k) + '.txt'
-        data_processing.Files.write_to_txt(test_accuracy(X_train, y_train, X_test, y_test, k), output_file)
-
-
-
 def main():
-    number_of_train_images = 200
-    number_of_test_images = 4
-    k = 9
+    number_of_train_images = 6000
+    number_of_test_images = 1000
+    k = 5
 
     X_train = data_processing.MNIST.load_images(TRAIN_DATA, number_of_train_images)
     y_train = data_processing.MNIST.load_labels(TRAIN_LABELS, number_of_train_images)
@@ -100,9 +116,17 @@ def main():
 
     X_train = data_processing.Image.dataset_to_list(X_train)
     X_test = data_processing.Image.dataset_to_list(X_test)
-
+    '''
     test_k(X_train, y_train, X_test, y_test, 'knn_output/accuracy_euclidean/')
-    #test_k(X_train, y_train, X_test, y_test, 'knn_output/accuracy_minkowski/')
+    test_k(X_train, y_train, X_test, y_test, 'knn_output/accuracy_minkowski/')
+    ''''''
+    y_test_list_of_indexes = get_list_of_indexes(y_test)
+    
+    for i in range(10):
+        output_file = 'knn_output/accuracy_minkowski/Accuracy k=5 for ' + str(i) + '.txt'
+        data_processing.Files.write_to_txt(test_accuracy_for_digit(X_train, y_train, X_test, y_test_list_of_indexes, i, k),
+                                           output_file)
+    '''
 
     images = data_processing.Files.read_images('input/')
     images = data_processing.Image.dataset_to_list(images)

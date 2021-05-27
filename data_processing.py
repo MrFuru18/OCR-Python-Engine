@@ -20,8 +20,8 @@ class MNIST:
             for r in range(n_rows):
                 row = []
                 for c in range(n_columns):
-                    #pixel = f.read(1)                                                                #szybsze dla obrazów png
-                    pixel = int.from_bytes(f.read(1), 'big')                               # szybsze do testowania dokładności
+                    pixel = f.read(1)                                                                #szybsze dla obrazów png
+                    #pixel = int.from_bytes(f.read(1), 'big')                               # szybsze do testowania dokładności
                     row.append(pixel)
                 image.append(row)
             images.append(image)
