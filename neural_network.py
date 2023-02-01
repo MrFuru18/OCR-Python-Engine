@@ -24,17 +24,19 @@ class DNN:
 
 
     def replace_weights_values(self):
-        for i in range(128):
-            for j in range(728):
-                self.params["W1"][i][j] = self.lw[0][i][j];
+        for i in range(len(self.lw[0])):
+            for j in range(len(self.lw[0][i])):
+                self.params["W1"][i][j] = self.lw[0][i][j]
 
-        for i in range(64):
-            for j in range(128):
-                self.params["W2"][i][j] = self.lw[0][i][j];
+        for i in range(len(self.lw[1])):
+            for j in range(len(self.lw[1][i])):
+                self.params["W2"][i][j] = self.lw[0][i][j]
 
-        for i in range(10):
-            for j in range(64):
-                self.params["W3"][i][j] = self.lw[0][i][j];
+
+        for i in range(len(self.lw[2])):
+            for j in range(len(self.lw[2][i])):
+                self.params["W3"][i][j] = self.lw[0][i][j]
+
 
     def sigmoid(self, x, derivative=False):
         if derivative:
@@ -68,29 +70,6 @@ class DNN:
 
         return params['A3']
 
-    def backward_pass(self, y_train, output):
-        params = self.params
-        change_w = {}
-
-        # Calculate W3 update
-        error = 2 * (output - y_train) / output.shape[0] * self.softmax(params['Z3'], derivative=True)
-        change_w['W3'] = np.outer(error, params['A2'])
-
-        # Calculate W2 update
-        error = np.dot(params['W3'].T, error) * self.sigmoid(params['Z2'], derivative=True)
-        change_w['W2'] = np.outer(error, params['A1'])
-
-        # Calculate W1 update
-        error = np.dot(params['W2'].T, error) * self.sigmoid(params['Z1'], derivative=True)
-        change_w['W1'] = np.outer(error, params['A0'])
-
-        return change_w
-
-    def update_network_parameters(self, changes_to_w):
-
-        for key, value in changes_to_w.items():
-            self.params[key] -= self.lr * value
-
     def compute_accuracy(self, test_data, output_nodes):
         predictions = []
 
@@ -104,31 +83,10 @@ class DNN:
             targets[int(all_values[0])] = 0.99
             output = self.forward_pass(inputs)
             pred = np.argmax(output)
+            #print(pred)
             predictions.append(pred == np.argmax(targets))
 
         return np.mean(predictions)
-
-    def train(self, train_list, test_list, output_nodes):
-        start_time = time.time()
-        for iteration in range(self.epochs):
-            for x in train_list:
-                all_values = x.split(',')
-                # scale and shift the inputs
-                inputs = (np.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01
-                # create the target output values (all 0.01, except the desired label which is 0.99)
-                targets = np.zeros(output_nodes) + 0.01
-                # all_values[0] is the target label for this record
-                targets[int(all_values[0])] = 0.99
-                output = self.forward_pass(inputs)
-                changes_to_w = self.backward_pass(targets, output)
-                self.update_network_parameters(changes_to_w)
-
-            accuracy = self.compute_accuracy(test_list, output_nodes)
-            print('Epoch: {0}, Time Spent: {1:.2f}s, Accuracy: {2:.2f}%'.format(
-                iteration + 1, time.time() - start_time, accuracy * 100
-            ))
-
-
 
     def classify(self, x):
         _x = []
@@ -138,8 +96,6 @@ class DNN:
         output = self.forward_pass(_x)
         pred = np.argmax(output)
         return pred
-
-
 
 
 def weights_to_txt(weights, output_file):
@@ -175,15 +131,23 @@ def analyze_input_set(dnn, X_test):
 
 
 def main():
-    list_of_weights = get_list_of_weights('data/weightsNN/Epoch8/')
-
+    list_of_weights = get_list_of_weights('data/weightsNN/Epoch60/')
     images = data_processing.Files.read_images('input/')
     images = data_processing.Image.dataset_to_list(images)
 
+    #test_file = open("data/mnist/mnist_test.csv", 'r')
+    #test_list = test_file.readlines()
+    #test_file.close()
+
+    #test_list = test_list[:1000]
+    #np.random.shuffle(test_list)
 
     dnn = DNN(sizes=[784, 256, 64, 10], epochs=1, lr=0.002, lw=list_of_weights)
     dnn.replace_weights_values()
     data_processing.Files.input_to_txt(analyze_input_set(dnn, images), 'nn_output/', 'input/')
+
+    #accuracy = dnn.compute_accuracy(test_list, 10)
+    #print(accuracy*100)
 
 
 
