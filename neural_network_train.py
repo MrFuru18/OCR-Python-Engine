@@ -91,11 +91,12 @@ class DNN:
             targets[int(all_values[0])] = 0.99
             output = self.forward_pass(inputs)
             pred = np.argmax(output)
+            #print(pred)
             predictions.append(pred == np.argmax(targets))
 
         return np.mean(predictions)
 
-    def train(self, train_list, test_list, output_nodes):
+    def train(self, train_list, test_list, path, output_nodes):
         start_time = time.time()
         epo = 1
         for iteration in range(self.epochs):
@@ -115,42 +116,33 @@ class DNN:
             print('Epoch: {0}, Time Spent: {1:.2f}s, Accuracy: {2:.2f}%'.format(
                 iteration + 1, time.time() - start_time, accuracy * 100
             ))
-            self.createModel('data/weightsNN/Epoch' + str(epo) + '/')
+            self.createModel(path + str(epo) + '/')
             epo += 1
 
 
     def createModel(self, path):
         params = self.params
 
-        listW1 = []
-        for a in params["W1"]:
+        for a in range(len(params["W1"])):
             values = []
-            for v in a:
+            for v in params["W1"][a]:
                 values.append(v)
-            listW1.append(values)
-        for f in range(len(listW1)):
-            output_file = path + 'W1' + 'N' + str(f) + '.txt'
-            weights_to_txt(listW1[f], output_file)
+            output_file = path + 'W1' + 'N' + str(a) + '.txt'
+            weights_to_txt(values, output_file)
 
-        listW2 = []
-        for a in params["W2"]:
+        for a in range(len(params["W2"])):
             values = []
-            for v in a:
+            for v in params["W2"][a]:
                 values.append(v)
-            listW2.append(values)
-        for f in range(len(listW2)):
-            output_file = path + 'W2' + 'N' + str(f) + '.txt'
-            weights_to_txt(listW2[f], output_file)
+            output_file = path + 'W2' + 'N' + str(a) + '.txt'
+            weights_to_txt(values, output_file)
 
-        listW3 = []
-        for a in params["W3"]:
+        for a in range(len(params["W3"])):
             values = []
-            for v in a:
+            for v in params["W3"][a]:
                 values.append(v)
-            listW3.append(values)
-        for f in range(len(listW3)):
-            output_file = path + 'W3' + 'N' + str(f) + '.txt'
-            weights_to_txt(listW3[f], output_file)
+            output_file = path + 'W3' + 'N' + str(a) + '.txt'
+            weights_to_txt(values, output_file)
 
 
 def weights_to_txt(weights, output_file):
@@ -170,9 +162,13 @@ def main():
     np.random.shuffle(train_list)
     np.random.shuffle(test_list)
 
+    train_list = train_list[:10000]
+    test_list = test_list[:1000]
 
-    dnn = DNN(sizes=[784, 256, 64, 10], epochs=60, lr=0.002)
-    dnn.train(train_list, test_list, 10)
+
+
+    dnn = DNN(sizes=[784, 256, 64, 10], epochs=20, lr=0.002)
+    dnn.train(train_list, test_list, 'data/weightsNN2/Epoch', 10)
 
 
 
