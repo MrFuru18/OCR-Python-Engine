@@ -30,12 +30,12 @@ class DNN:
 
         for i in range(len(self.lw[1])):
             for j in range(len(self.lw[1][i])):
-                self.params["W2"][i][j] = self.lw[0][i][j]
+                self.params["W2"][i][j] = self.lw[1][i][j]
 
 
         for i in range(len(self.lw[2])):
             for j in range(len(self.lw[2][i])):
-                self.params["W3"][i][j] = self.lw[0][i][j]
+                self.params["W3"][i][j] = self.lw[2][i][j]
 
 
     def sigmoid(self, x, derivative=False):
@@ -72,6 +72,8 @@ class DNN:
 
     def compute_accuracy(self, test_data, output_nodes):
         predictions = []
+        preds = []
+        labels = []
 
         for x in test_data:
             all_values = x.split(',')
@@ -84,9 +86,25 @@ class DNN:
             output = self.forward_pass(inputs)
             pred = np.argmax(output)
             #print(pred)
+            preds.append(pred)
+            labels.append(np.argmax(targets))
             predictions.append(pred == np.argmax(targets))
 
+        for i in range(10):
+            print("Accuracy for " + str(i) + ": " + str(self.accuracy_for_digit(preds, labels, i)) + "%")
+
         return np.mean(predictions)
+
+    def accuracy_for_digit(self, preds, labels, digit):
+        correct = 0
+        digits = 0
+        for i in range(len(labels)):
+            if labels[i] == digit:
+                digits += 1
+                if preds[i] == labels[i]:
+                    correct += 1
+
+        return correct / digits * 100
 
     def classify(self, x):
         _x = []
@@ -139,7 +157,6 @@ def main():
     #test_list = test_file.readlines()
     #test_file.close()
 
-    #test_list = test_list[:1000]
     #np.random.shuffle(test_list)
 
     dnn = DNN(sizes=[784, 256, 64, 10], epochs=1, lr=0.002, lw=list_of_weights)
