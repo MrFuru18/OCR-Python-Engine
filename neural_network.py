@@ -69,17 +69,6 @@ class DNN:
         return params['A3']
 
     def backward_pass(self, y_train, output):
-        '''
-            This is the backpropagation algorithm, for calculating the updates
-            of the neural network's parameters.
-
-            Note: There is a stability issue that causes warnings. This is
-                  caused  by the dot and multiply operations on the huge arrays.
-
-                  RuntimeWarning: invalid value encountered in true_divide
-                  RuntimeWarning: overflow encountered in exp
-                  RuntimeWarning: overflow encountered in square
-        '''
         params = self.params
         change_w = {}
 
@@ -98,26 +87,11 @@ class DNN:
         return change_w
 
     def update_network_parameters(self, changes_to_w):
-        '''
-            Update network parameters according to update rule from
-            Stochastic Gradient Descent.
-
-            θ = θ - η * ∇J(x, y),
-                theta θ:            a network parameter (e.g. a weight w)
-                eta η:              the learning rate
-                gradient ∇J(x, y):  the gradient of the objective function,
-                                    i.e. the change for a specific theta θ
-        '''
 
         for key, value in changes_to_w.items():
             self.params[key] -= self.lr * value
 
     def compute_accuracy(self, test_data, output_nodes):
-        '''
-            This function does a forward pass of x, then checks if the indices
-            of the maximum value in the output equals the indices in the label
-            y. Then it sums over each prediction and calculates the accuracy.
-        '''
         predictions = []
 
         for x in test_data:
